@@ -1,4 +1,5 @@
-from datetime import datetime, time
+import time
+from datetime import datetime
 
 from flask import Flask, request
 
@@ -7,6 +8,10 @@ messages = [
     {'username': 'jack', 'text': 'hello', 'time': time.time()},
     {'username': 'mary', 'text': 'Hi, Jack', 'time': time.time()}
 ]
+users = {
+    'jack': 'black',
+    'mary': '12345'
+}
 
 
 @app.route("/")
@@ -18,7 +23,9 @@ def hello():
 def status():
     return {
         'status': True,
-        'time': datetime.now().strftime('%Y/%m/%d %H:%M:%S')
+        'time': datetime.now().strftime('%Y/%m/%d %H:%M:%S'),
+        'messages_count': len(messages),
+        'users_count': len(users)
     }
 
 
@@ -32,22 +39,29 @@ def history():
 
     filtered_messages = [message for message in messages if after < message['time']]
 
-    return {
-        'messages': filtered_messages
-    }
+    return {'messages': filtered_messages}
 
-
+authorization = 1
 @app.route("/send", methods=['POST'])
 def send():
     """
-    request: {"username": "str", "text": "str"}
+    request: {"username": "str", "password": "str", "text": "str"}
     response: {"ok": true}
     """
     data = request.json
     username = data['username']
+    password = data['password']
     text = data['text']
 
-    messages.append({'username': username, 'text': text, 'time': time.time()})
+    if username in users:
+        real_password = users[username]
+        if real_password != password:
+            return {"ok": False}
+    else:
+        users[username] = password
+
+    new_message = {'username': username, 'text': text, 'time': time.time()}
+    messages.append(new_message)
 
     return {"ok": True}
 
