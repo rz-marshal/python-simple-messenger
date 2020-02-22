@@ -41,7 +41,7 @@ def history():
 
     return {'messages': filtered_messages}
 
-authorization = 1
+
 @app.route("/send", methods=['POST'])
 def send():
     """
